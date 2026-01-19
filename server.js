@@ -1,10 +1,23 @@
 const express = require('express');
 const app = express();
 
-//Express http
-/*
+const mysql = require('mysql2');
 
-*/
+//Express http
+const connection = mysql.createConnection({
+  host: '172.29.18.133',
+  user: 'usersite',
+  password: 'usersitemdp',
+  database: 'UserSite'
+});
+
+connection.connect((err) => {
+  if (err) {
+    console.error('Erreur de connexion à la base de données :', err);
+    return;
+  }
+  console.log('Connecté à la base de données MySQL.');
+});
 
 app.use(express.static('html'));
 app.use(express.json());
@@ -24,11 +37,25 @@ app.get('/info', (req, res) => {
     console.log("Click");
 });
 
+
+
 app.post('/register', (req, res) => {
-    console.log('Données reçues pour l\'inscription');
-    console.log(req.body);
-    res.json( {message: 'Inscription réussie !' });
+
+  connection.query(
+    'INSERT INTO User (login, Password) VALUES (?, ?)',
+    [req.body.loginValue,req.body.passwordValue],
+    (err, results) => {
+      if (err) {
+        console.error('Erreur lors de l\'insertion dans la base de données :', err);
+        res.status(500).json({ message: 'Erreur serveur' });
+        return;
+      }
+      console.log('Insertion réussie, ID utilisateur :', results.insertId);
+      res.json({ message: 'Inscription réussie !', userId: results.insertId });
+    }
+  );
 });
+
 
 //3000 = port écoute
 
