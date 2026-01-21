@@ -40,9 +40,8 @@ app.get('/info', (req, res) => {
 
 
 app.post('/register', (req, res) => {
-
   connection.query(
-    'INSERT INTO User (login, Password) VALUES (?, ?)',
+    'INSERT INTO User (Login, Password) VALUES (?, ?)',
     [req.body.loginValue,req.body.passwordValue],
     (err, results) => {
       if (err) {
@@ -50,15 +49,44 @@ app.post('/register', (req, res) => {
         res.status(500).json({ message: 'Erreur serveur' });
         return;
       }
-      console.log('Insertion réussie, ID utilisateur :', results.insertId);
-      res.json({ message: 'Inscription réussie !', userId: results.insertId });
+      console.log('Insertion réussie, IDDD utilisateur :', results.insertId);
+      res.json({ message: 'Inscriptionnn réussie !', userId: results.insertId });
     }
   );
 });
 
+//ECOUTER USER
+app.get('/users',(req,res) => {
+    connection.query('SELECT * FROM User',(err,results) => { //Renvoie deux paramettre err et resultat
+        if(err){
+            console.error('Erreur lors de la recup de l utilisateur : ',err);
+            res.status(500).json({message : 'Erreur serveur'}); //Code 500 erreur
+            return;
+        }
+        console.log("Récupération server ok");
+        res.json(results); //Resultat en json car code en js donc plus facile a récuperer 
+    });
+});
+//Renvoie toutes les données de la base
 
+app.post('/votes',(req,res) => {
+  console.log("la");
+  // connection.query('INSERT INTO Vote (idUser) VALUES (?)',
+  //   [req.body.IdValue],
+  //   (err,results) => {
+  //     if(err){
+  //       console.error('Erreur lors de l\'insertion dans la base de données :', err);
+  //       res.status(500).json({ message: 'Erreur serveur' });
+  //       return;
+  //     }
+  //     console.log('Insertion réussie, ID vote :', results.insertId);
+  //     res.json({ message: 'Vote reussi !', userId: results.insertId });
+  //   }
+  // );
+});
 //3000 = port écoute
 
 app.listen(3000, () => {
     console.log('Server running on http://172.29.18.133:3000');
 });
+
