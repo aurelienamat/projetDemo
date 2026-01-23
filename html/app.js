@@ -13,6 +13,7 @@ const usersList = document.getElementById('usersList');
 
 const titre = document.getElementById('titre2');
 
+const tab = document.getElementById('tab');
 
 var i = 1;
 // Ajout d'un écouteur d'événement sur le bouton
@@ -49,7 +50,36 @@ window.onload = () => { //Quand la page est charge
             // usersList.appendChild(optionmdp);
         });
     });
+    majvoter();
 }
+
+function cleartbody(){
+    console.log("Clear");
+    const tbody = document.getElementById('idtbody');
+    tbody.remove();
+}
+
+function majvoter(){
+    //Recupereation pour mettre dans table
+    fetch('/avoter')
+    .then(response => response.json())
+    .then(idUsers => {
+        const body = document.createElement('tbody');
+        body.id = 'idtbody';
+        tab.appendChild(body);
+        idUsers.forEach(idUser => {
+            const tr = document.createElement('tr');
+            body.appendChild(tr)
+            const td = document.createElement('td');
+            td.innerHTML = idUser.Login;
+            tr.appendChild(td);
+            const td1 = document.createElement('td');
+            td1.innerHTML = idUser.nombre;
+            tr.appendChild(td1);
+        })
+    })
+}
+
 /*
 btnWho.addEventListener("click", () => {
     console.log("Click vote " + usersList.value);
@@ -75,9 +105,8 @@ btnWho.addEventListener('click', () => {
         },
         body: JSON.stringify({ IdValue: usersList.value })     
     }).then(response => response.text())
-      .then(data => {
-          alert(data);
-      });
+    cleartbody();
+    majvoter();
 });
 
 //json java scrip object

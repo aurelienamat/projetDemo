@@ -49,8 +49,8 @@ app.post('/register', (req, res) => {
         res.status(500).json({ message: 'Erreur serveur' });
         return;
       }
-      console.log('Insertion réussie, IDDD utilisateur :', results.insertId);
-      res.json({ message: 'Inscriptionnn réussie !', userId: results.insertId });
+      console.log('Insertion réussie, ID utilisateur :', results.insertId);
+      res.json({ message: 'Inscription réussie !', userId: results.insertId });
     }
   );
 });
@@ -69,20 +69,21 @@ app.get('/users',(req,res) => {
 });
 //Renvoie toutes les données de la base
 
+
 app.post('/votes',(req,res) => {
   console.log("la");
-  // connection.query('INSERT INTO Vote (idUser) VALUES (?)',
-  //   [req.body.IdValue],
-  //   (err,results) => {
-  //     if(err){
-  //       console.error('Erreur lors de l\'insertion dans la base de données :', err);
-  //       res.status(500).json({ message: 'Erreur serveur' });
-  //       return;
-  //     }
-  //     console.log('Insertion réussie, ID vote :', results.insertId);
-  //     res.json({ message: 'Vote reussi !', userId: results.insertId });
-  //   }
-  // );
+  connection.query('INSERT INTO Vote (idUser) VALUES (?)',
+    [req.body.IdValue],
+    (err,results) => {
+      if(err){
+        console.error('Erreur lors de l\'insertion dans la base de données :', err);
+        res.status(500).json({ message: 'Erreur serveur' });
+        return;
+      }
+      console.log('Insertion réussie, ID vote :', results.insertId);
+      res.json({ message: 'Vote reussi !', userId: results.insertId });
+    }
+  );
 });
 //3000 = port écoute
 
@@ -90,3 +91,14 @@ app.listen(3000, () => {
     console.log('Server running on http://172.29.18.133:3000');
 });
 
+app.get('/avoter',(req,res) => {
+  connection.query('SELECT Login, COUNT(*) as nombre FROM Vote,User WHERE User.id = Vote.idUser GROUP BY idUser ORDER BY nombre DESC',(err,results) => {
+    if(err){
+      console.error('Erreur lors de la récup des votes ',err);
+      res.status(500).json({message : 'Erreur serveur'});
+      return;
+    }
+      console.log("Récupération vote ok");
+      res.json(results); //Resultat en json car code en js donc plus facile a récuperer 
+  })
+})
