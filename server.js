@@ -68,6 +68,8 @@ app.get('/users',(req,res) => {
         res.json(results); //Resultat en json car code en js donc plus facile a récuperer 
     });
 });
+
+
 //Renvoie toutes les données de la base
 
 

@@ -12,6 +12,47 @@ const titre = document.getElementById('titre2');
 const tab = document.getElementById('tab');
 
 const btnco = document.getElementById('btnco');
+const btndeco = document.getElementById('btndeco');
+
+const whoco = document.getElementById('whoconnect');
+
+function whoIsConnect(){
+    fetch('/users')
+    .then(response => response.json())
+    .then(users => {
+        users.forEach(user => {
+            if(localStorage.getItem('userId') == null){
+                whoco.innerHTML = 'Non connecté';
+                return;
+            }
+            if(localStorage.getItem('userId') == user.id){
+                whoco.innerHTML = 'Bonjour ' + user.Login;
+                return;
+            }
+        });
+    });
+}
+
+//Enlever les boutons
+function btnControl(){
+    if(localStorage.getItem('userId') == null){
+        btndeco.style.visibility = 'hidden';
+        btnco.style.visibility = 'visible';
+        monBouton.style.visibility = 'visible';
+    }else{
+        btndeco.style.visibility = 'visible';
+        btnco.style.visibility = 'hidden';
+        monBouton.style.visibility = 'hidden';
+    }
+}
+
+
+btndeco.addEventListener('click', ()=> {
+    localStorage.removeItem('userId');
+    console.log('remove');
+    whoIsConnect();
+    btnControl();
+})
 
 var i = 1;
 // Ajout d'un écouteur d'événement sur le bouton
@@ -42,6 +83,8 @@ btnco.addEventListener('click',() => {
             console.log(data.user.id);
             localStorage.setItem('userId', data.user.id);
             console.log(localStorage.getItem('userId'));
+            whoIsConnect();
+            btnControl();
         });
 });
 
@@ -63,9 +106,12 @@ window.onload = () => { //Quand la page est charge
             // optionmdp.value = user.id;
             // optionmdp.text = user.Password;
             // usersList.appendChild(optionmdp);
+            whoIsConnect();
+            btnControl();
         });
     });
     majvoter();
+    
 }
 
 function cleartbody(){
