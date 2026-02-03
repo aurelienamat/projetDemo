@@ -40,8 +40,9 @@ app.get('/info', (req, res) => {
 
 
 app.post('/register', (req, res) => {
+  console.log(req.body);
   connection.query(
-    'INSERT INTO User (Login, Password) VALUES (?, ?)',
+    'INSERT INTO Users (Login, Password) VALUES (?, ?)',
     [req.body.loginValue,req.body.passwordValue],
     (err, results) => {
       if (err) {
@@ -57,7 +58,7 @@ app.post('/register', (req, res) => {
 
 //ECOUTER USER
 app.get('/users',(req,res) => {
-    connection.query('SELECT * FROM User',(err,results) => { //Renvoie deux paramettre err et resultat
+    connection.query('SELECT * FROM Users',(err,results) => { //Renvoie deux paramettre err et resultat
         if(err){
             console.error('Erreur lors de la recup de l utilisateur : ',err);
             res.status(500).json({message : 'Erreur serveur'}); //Code 500 erreur
@@ -71,9 +72,9 @@ app.get('/users',(req,res) => {
 
 
 app.post('/votes',(req,res) => {
-  console.log("la");
-  connection.query('INSERT INTO Vote (idUser) VALUES (?)',
-    [req.body.IdValue],
+  console.log(req.body);
+  connection.query('INSERT INTO Vote (idUser,idElecteur) VALUES (?,?)',
+    [req.body.IdValue,req.body.idElecteur],
     (err,results) => {
       if(err){
         console.error('Erreur lors de l\'insertion dans la base de données :', err);
@@ -85,14 +86,36 @@ app.post('/votes',(req,res) => {
     }
   );
 });
+
+app.post('/connexion', (req,res) => {
+  console.log(req.body);
+  //on recupere le login et le password
+  const {login,password} = req.body; //Choix de la récup json
+  connection.query('SELECT * FROM Users WHERE login = ? AND password = ?', [login, password], (err, results) => {
+    if (err) {
+        console.error('Erreur lors de la vérification des identifiants :', err);
+        res.status(500).json({ message: 'Erreur serveur' });
+        return;
+      }
+      if (results.length === 0) {
+        res.status(401).json({ message: 'Identifiants invalides' });
+        return;
+      }
+      // Identifiants valides 
+      res.json({ message: 'Connexion réussie !',user:results[0] });
+  });
+});
+
 //3000 = port écoute
+
+
 
 app.listen(3000, () => {
     console.log('Server running on http://172.29.18.133:3000');
 });
 
 app.get('/avoter',(req,res) => {
-  connection.query('SELECT Login, COUNT(*) as nombre FROM Vote,User WHERE User.id = Vote.idUser GROUP BY idUser ORDER BY nombre DESC',(err,results) => {
+  connection.query('SELECT Login, COUNT(*) as nombre FROM Vote,Users WHERE Users.id = Vote.idUser GROUP BY idUser ORDER BY nombre DESC',(err,results) => {
     if(err){
       console.error('Erreur lors de la récup des votes ',err);
       res.status(500).json({message : 'Erreur serveur'});
@@ -102,3 +125,4 @@ app.get('/avoter',(req,res) => {
       res.json(results); //Resultat en json car code en js donc plus facile a récuperer 
   })
 })
+

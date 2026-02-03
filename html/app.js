@@ -1,7 +1,3 @@
-//const { response } = require("express");
-
-//const { response } = require("express");
-
 const monInput = document.getElementById('nom');
 const monInputPassWord = document.getElementById('password');
 const monBouton = document.getElementById('btn');
@@ -15,6 +11,8 @@ const titre = document.getElementById('titre2');
 
 const tab = document.getElementById('tab');
 
+const btnco = document.getElementById('btnco');
+
 var i = 1;
 // Ajout d'un écouteur d'événement sur le bouton
 monBouton.addEventListener('click', () => {
@@ -23,12 +21,28 @@ monBouton.addEventListener('click', () => {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ loginValue: nom.value ,passwordValue: password.value})
-    }).then(response => response.text())
+        body: JSON.stringify({ loginValue: monInput.value ,passwordValue: monInputPassWord.value})
+    }).then(response => response.json())
         .then(data => {
             alert(data);
         });
     i++;
+});
+
+btnco.addEventListener('click',() => {
+    console.log("connexion");
+    fetch('/connexion',{
+        method : 'POST',
+        headers:{
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({login: monInput.value ,password: monInputPassWord.value })
+    }).then(response => response.json())
+        .then(data => {
+            console.log(data.user.id);
+            localStorage.setItem('userId', data.user.id);
+            console.log(localStorage.getItem('userId'));
+        });
 });
 
 autreBouton.addEventListener('click', () => {
@@ -36,6 +50,7 @@ autreBouton.addEventListener('click', () => {
 });
 
 window.onload = () => { //Quand la page est charge
+    console.log(localStorage.getItem('userId'));
     fetch('/users')
     .then(response => response.json())
     .then(users => {
@@ -98,16 +113,23 @@ btnWho.addEventListener("click", () => {
 
 // Ajout d'un écouteur d'événement sur le bouton
 btnWho.addEventListener('click', () => {
+    const userId = localStorage.getItem('userId');
+    if(userId == null){
+        console.log("Personne est co");
+        return;
+    }
     fetch('/votes', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ IdValue: usersList.value })     
-    }).then(response => response.text())
+        body: JSON.stringify({ IdValue: usersList.value , idElecteur : userId})     
+    }).then(response => response.json())
     cleartbody();
     majvoter();
 });
+
+
 
 //json java scrip object
 //Foreach de chaque objet
