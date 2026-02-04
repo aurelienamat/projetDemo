@@ -65,7 +65,7 @@ monBouton.addEventListener('click', () => {
         body: JSON.stringify({ loginValue: monInput.value ,passwordValue: monInputPassWord.value})
     }).then(response => response.json())
         .then(data => {
-            alert(data);
+            console.log(data);
         });
     i++;
 });
@@ -80,6 +80,10 @@ btnco.addEventListener('click',() => {
         body: JSON.stringify({login: monInput.value ,password: monInputPassWord.value })
     }).then(response => response.json())
         .then(data => {
+            if(data.user == null){
+                alert('Erreur mot de passe');
+                return;
+            }
             console.log(data.user.id);
             localStorage.setItem('userId', data.user.id);
             console.log(localStorage.getItem('userId'));

@@ -1,7 +1,9 @@
 const express = require('express');
 const app = express();
-const bcrypt = require('bcrypt');
-
+const bcrypt = require('bcrypt'); //POUR HASH
+const jwt = require('jsonwebtoken'); //POUR TOKEN
+const SECRET_KEY = 'aurelienamat';
+const redis = require('redis');
 const mysql = require('mysql2');
 
 //Express http
@@ -53,6 +55,8 @@ app.post('/register', async (req, res) => {
   console.log('HASH compare ' + passwordValueHash);
 
   //const passwordValueHash = '$2b$10$tuxhef3wLVhxI8mJiLhyg.UxLraoqumERbl0oUWbFk7Gy/oB0oGKq';
+  //Await bloque le code
+  //dans .then mettre les fonctions qui ont besoin d'être executer apres
 
   connection.query(
     'INSERT INTO Users (Login, Password) VALUES (?, ?)',
@@ -81,7 +85,7 @@ async function hachage(nohash) {
 
 //ECOUTER USER
 app.get('/users', (req, res) => {
-  connection.query('SELECT * FROM Users', (err, results) => { //Renvoie deux paramettre err et resultat
+  connection.query('SELECT id,Login FROM Users', (err, results) => { //Renvoie deux paramettre err et resultat
     if (err) {
       console.error('Erreur lors de la recup de l utilisateur : ', err);
       res.status(500).json({ message: 'Erreur serveur' }); //Code 500 erreur
@@ -153,6 +157,7 @@ app.post('/connexion', async (req, res) => {
     }
     console.log(results[0]);
     let resultats = results[0];
+    //redis local strorage server  pour token dans server et pas bdd
     bcrypt.compare(password, results[0].Password, (err, results) => {
       if (err) {
         console.log('Erreur ' + err);
@@ -160,14 +165,24 @@ app.post('/connexion', async (req, res) => {
       }
       if (results) {
         console.log(resultats);
+        //token
+        const token = creatToken(resultats.id,resultats);
+        resultats.id = token;
         res.json({ message: 'Connexion reussi !', user: resultats });
       } else {
-        res.json({ message: 'Connexion echoué !', user: resultats });
+        res.json({ message: 'Connexion echoué !'});
+        return;
       }
     });
   });
 
 });
+
+function creatToken(id,resultats){
+  //id = jwt.sign({userId : resultats.id},SECRET_KEY,{expiresIn : 3600});
+  //redis.set('token',id,{EX : 3600});
+  return id;
+}
 
 //3000 = port écoute
 
