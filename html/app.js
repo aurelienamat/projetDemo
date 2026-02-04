@@ -106,9 +106,9 @@ window.onload = () => { //Quand la page est charge
             // optionmdp.value = user.id;
             // optionmdp.text = user.Password;
             // usersList.appendChild(optionmdp);
-            whoIsConnect();
             btnControl();
         });
+        whoIsConnect();
     });
     majvoter();
     

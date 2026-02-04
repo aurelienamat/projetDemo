@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const bcrypt = require('bcrypt');
 
 const mysql = require('mysql2');
 
@@ -38,12 +39,10 @@ app.get('/info', (req, res) => {
 });
 
 
-
-app.post('/register', (req, res) => {
-  console.log(req.body);
+function register(hash,req,res){
   connection.query(
     'INSERT INTO Users (Login, Password) VALUES (?, ?)',
-    [req.body.loginValue,req.body.passwordValue],
+    [req.body.loginValue,hash],
     (err, results) => {
       if (err) {
         console.error('Erreur lors de l\'insertion dans la base de données :', err);
@@ -54,6 +53,34 @@ app.post('/register', (req, res) => {
       res.json({ message: 'Inscription réussie !', userId: results.insertId });
     }
   );
+}
+
+app.post('/register', (req, res) => {
+  console.log(req.body);
+  const passwordValueHash = req.body.passwordValue;
+  bcrypt.hash(req.body.passwordValue,10, (err,hash) => {
+    if(err){
+      console.log('Erreur hash ' + err);
+      return;
+    }
+    console.log('le hash est ' + hash);
+    register(hash,req,res);
+  });
+
+  // console.log(passwordValueHash);
+  // connection.query(
+  //   'INSERT INTO Users (Login, Password) VALUES (?, ?)',
+  //   [req.body.loginValue,passwordValueHash],
+  //   (err, results) => {
+  //     if (err) {
+  //       console.error('Erreur lors de l\'insertion dans la base de données :', err);
+  //       res.status(500).json({ message: 'Erreur serveur' });
+  //       return;
+  //     }
+  //     console.log('Insertion réussie, ID utilisateur :', results.insertId);
+  //     res.json({ message: 'Inscription réussie !', userId: results.insertId });
+  //   }
+  // );
 });
 
 //ECOUTER USER
@@ -114,6 +141,35 @@ app.post('/connexion', (req,res) => {
 
 app.listen(3000, () => {
     console.log('Server running on http://172.29.18.133:3000');
+
+    //TEST HASH MDP
+    // const mdp = 'motdepasse';
+    // const mdpHash = '$2b$10$YFevRvsTdHvo7pU8JHrNsu18Q6s1EILBKOp.FUPMPQuZsCuI0o8by';
+    // console.log(mdp);
+    // bcrypt.hash(mdp,10,(err,hash) => {
+    //   if(err){
+    //     console.log('Erreur hash ' + err);
+    //     return;
+    //   }
+    //   console.log(hash);
+    // });
+
+    // //TEST COMPARE MDP
+    // const mdpInput = 'motdepasse';
+    // console.log('Mot de passe input : ' + mdpInput);
+    // console.log('Mot de passe : ' + mdp);
+    // bcrypt.compare(mdpInput,mdpHash,(err,result) => {
+    //   if(err){
+    //     console.log('Erreur compare hash ' + err);
+    //     return;
+    //   }
+
+    //   if(result){
+    //     console.log("Same mdp");
+    //   }else{
+    //     console.log("Note same mdp");
+    //   }
+    // })
 });
 
 app.get('/avoter',(req,res) => {
