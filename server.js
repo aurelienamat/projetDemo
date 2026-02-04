@@ -39,10 +39,24 @@ app.get('/info', (req, res) => {
 });
 
 
-function register(hash, req, res) {
+app.post('/register', async (req, res) => {
+
+  let passwordValueHash;
+
+  try {
+    passwordValueHash = await hachage(req.body.passwordValue);
+    console.log('HASH compare ' + passwordValueHash);
+  } catch (err) {
+    console.log(err);
+  }
+
+  console.log('HASH compare ' + passwordValueHash);
+
+  //const passwordValueHash = '$2b$10$tuxhef3wLVhxI8mJiLhyg.UxLraoqumERbl0oUWbFk7Gy/oB0oGKq';
+
   connection.query(
     'INSERT INTO Users (Login, Password) VALUES (?, ?)',
-    [req.body.loginValue, hash],
+    [req.body.loginValue, passwordValueHash],
     (err, results) => {
       if (err) {
         console.error('Erreur lors de l\'insertion dans la base de données :', err);
@@ -53,48 +67,17 @@ function register(hash, req, res) {
       res.json({ message: 'Inscription réussie !', userId: results.insertId });
     }
   );
-}
-
-
-app.post('/register', (req, res) => {
-  console.log(req.body);
-  const passwordValueHash = req.body.passwordValue;
-  bcrypt.hash(req.body.passwordValue, 10, (err, hash) => {
-    if (err) {
-      console.log('Erreur hash ' + err);
-      return;
-    }
-    console.log('le hash est ' + hash);
-    register(hash, req, res);
-  });
-
-  //console.log('passwordValueHash : ' + passwordValueHash);
-
-  // connection.query(
-  //   'INSERT INTO Users (Login, Password) VALUES (?, ?)',
-  //   [req.body.loginValue,passwordValueHash],
-  //   (err, results) => {
-  //     if (err) {
-  //       console.error('Erreur lors de l\'insertion dans la base de données :', err);
-  //       res.status(500).json({ message: 'Erreur serveur' });
-  //       return;
-  //     }
-  //     console.log('Insertion réussie, ID utilisateur :', results.insertId);
-  //     res.json({ message: 'Inscription réussie !', userId: results.insertId });
-  //   }
-  // );
 });
 
-// function hachage(nohash) {
-//   bcrypt.hash(nohash, 10, (err, hash) => {
-//     if (err) {
-//       console.log('Erreur lors du hash' + err);
-//       return;
-//     }
-//     console.log('le hash est ' + hash);
-//     return hash;
-//   });
-// }
+async function hachage(nohash) {
+  try {
+    const mdphash = await bcrypt.hash(nohash, 10);
+    console.log('Hash : ' + mdphash);
+    return mdphash;
+  } catch (err) {
+    console.log('Erreur hash ' + err);
+  }
+}
 
 //ECOUTER USER
 app.get('/users', (req, res) => {
@@ -129,39 +112,22 @@ app.post('/votes', (req, res) => {
   );
 });
 
-function connexion(res, req, password,login) {
-  
-  connection.query('SELECT * FROM Users WHERE login = ? AND password = ?', [login, password], (err, results) => {
-    if (err) {
-      console.error('Erreur lors de la vérification des identifiants :', err);
-      res.status(500).json({ message: 'Erreur serveur' });
-      return;
-    }
-    if (results.length === 0) {
-      res.status(401).json({ message: 'Identifiants invalides' });
-      return;
-    }
-    // Identifiants valides 
-    res.json({ message: 'Connexion réussie !', user: results[0] });
-  });
-}
 
-
-app.post('/connexion', (req, res) => {
+app.post('/connexion', async (req, res) => {
   console.log(req.body);
-  //on recupere le login et le password
-  const { login, password } = req.body; //Choix de la récup json
-  bcrypt.hash(password,10, (err,hash) => {
-    if(err){
-      console.log('Erreur hash ' + err);
-      return;
-    }
-    connexion(res,req,hash,login);
-  });
-  // //on recupere le login et le password
-  // const { login, password } = req.body; //Choix de la récup json
 
-  // connection.query('SELECT * FROM Users WHERE login = ? AND password = ?', [login, password], (err, results) => {
+  let passwordValueHash;
+
+  // //on recupere le login et le password
+  const { login, password } = req.body; //Choix de la récup json
+  // try {
+  //   passwordHash = await hachage(password);
+  // } catch (err) {
+  //   console.log(err);
+  // }
+  // console.log('Hash password before connexion ' + passwordHash);
+
+  // connection.query('SELECT * FROM Users WHERE login = ? AND password = ?', [login, passwordHash], (err, results) => {
   //   if (err) {
   //     console.error('Erreur lors de la vérification des identifiants :', err);
   //     res.status(500).json({ message: 'Erreur serveur' });
@@ -174,6 +140,33 @@ app.post('/connexion', (req, res) => {
   //   // Identifiants valides 
   //   res.json({ message: 'Connexion réussie !', user: results[0] });
   // });
+
+  connection.query('SELECT * FROM `Users` WHERE Users.Login = ?', [login], (err, results) => {
+    if (err) {
+      console.error('Erreur lors de la vérification des identifiants :', err);
+      res.status(500).json({ message: 'Erreur serveur' });
+      return;
+    }
+    if (results.length === 0) {
+      res.status(401).json({ message: 'Identifiants invalides' });
+      return;
+    }
+    console.log(results[0]);
+    let resultats = results[0];
+    bcrypt.compare(password, results[0].Password, (err, results) => {
+      if (err) {
+        console.log('Erreur ' + err);
+        return;
+      }
+      if (results) {
+        console.log(resultats);
+        res.json({ message: 'Connexion reussi !', user: resultats });
+      } else {
+        res.json({ message: 'Connexion echoué !', user: resultats });
+      }
+    });
+  });
+
 });
 
 //3000 = port écoute
